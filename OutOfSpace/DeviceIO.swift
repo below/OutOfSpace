@@ -161,30 +161,35 @@ final class ToyPadService: ObservableObject {
         switchPad(dev, pad: pad, r: r, g: g, b: b)
     }
     
-    func readPages(pad: Pad, startPage: UInt8) async throws -> [UInt8] {
+    private func createReadTagCommand(msg: UInt8, index: UInt8, page: UInt8) -> [UInt8] {
+        [0x55, 0x04, 0xD2, msg, index, page]
+    }
+    
+    func readPages(padByte: UInt8, startPage: UInt8) async throws -> [UInt8] {
         guard let dev = self.device else { throw ToyPadReadError.notConnected }
 
-        // Only try auth once per session when a strategy exists.
         if authState == .unknown {
             await ensureAuthenticatedIfPossible()
         }
-        
+
+        // D2 braucht den index (0/1/2), nicht pad (1/2/3)
+//        guard let index = presentIndexByPad[padByte] else {
+//            throw ToyPadReadError.malformedResponse
+//        }
+        let index = padByte
         let msg = nextMsg()
-        let padByte = d2PadByte(for: pad)
+        appendLog("D2 READ msg=\(msg) pad=\(padByte) index=\(index) page=\(String(format:"%02X", startPage))")
 
-        appendLog("D2 READ msg=\(msg) padByte=\(padByte) page=\(String(format: "%02X", startPage))")
+        // cmd: 55 04 D2 <msg> <index> <page>
+        let data16 = try await request55(
+            kind: .readPages,
+            dev: dev,
+            cmd: createReadTagCommand(msg: msg, index: index, page: startPage)
+        )
 
-        // D2 request: 55 04 D2 <msg> <padByte> <page>
-        // Note: This may still be denied by the portal (e.g. status 0xF0).
-        let payload = try await request55(kind: .readPages, dev: dev, cmd: [0x55, 0x04, 0xD2, msg, padByte, startPage])
-
-        // Expected for D2 read: payload[0]=status, payload[1..16]=data (16 bytes = 4 pages)
-        guard payload.count >= 1 else { throw ToyPadReadError.malformedResponse }
-        let status = payload[0]
-        guard status == 0 else { throw ToyPadReadError.deviceError(status: status) }
-        guard payload.count >= 1 + 16 else { throw ToyPadReadError.malformedResponse }
-
-        return Array(payload[1..<(1 + 16)])
+        // handle55Response(.readPages) liefert bereits nur die 16 Datenbytes
+        guard data16.count == 16 else { throw ToyPadReadError.malformedResponse }
+        return data16
     }
 
     private func d2PadByte(for pad: Pad) -> UInt8 {
@@ -266,7 +271,7 @@ final class ToyPadService: ObservableObject {
         sendOutputReport(dev, TOYPAD_INIT)
 
         // Quick lightshow to indicate the device is active (await before registering input)
-        await runLightshow(on: dev)
+ //       await runLightshow(on: dev)
 
         // Register input callback
         inputReport = [UInt8](repeating: 0, count: 32)
@@ -326,6 +331,11 @@ final class ToyPadService: ObservableObject {
                 print("✅ \(padName(ev.pad)) inserted uid=\(uid)")
                 publishPad(ev.pad, present: true, uid: uid)
             }
+//            Task {
+//                let array = try! await readPages(padByte: ev.pad, startPage: 0x24)
+//                appendLog("Read Page 0x24: \(hex(array))")
+//            }
+
 
         case 1: // removed
             // Only log/publish if something was present
@@ -355,6 +365,7 @@ final class ToyPadService: ObservableObject {
     
     private struct TagEv {
         let pad: UInt8        // 1=center, 2=left, 3=right
+        let index: UInt8      // index
         let action: UInt8     // 0=inserted, 1=removed
         let uid: [UInt8]      // 7 bytes
     }
@@ -364,10 +375,13 @@ final class ToyPadService: ObservableObject {
         guard b[0] == 0x56, b[1] == 0x0B else { return nil }
 
         let pad = b[2]
+        let index = b[4]          // 0,1,2  (slot)
         let action = b[5]
-        let uid = Array(b[6..<13]) // 7 bytes
+        let uid = Array(b[7...13]) // 7 bytes
 
-        return TagEv(pad: pad, action: action, uid: uid)
+        appendLog("TAG \(hex(b))")
+
+        return TagEv(pad: pad, index: index, action: action, uid: uid)
     }
 
     private func handle55Response(_ b: [UInt8]) -> Bool {

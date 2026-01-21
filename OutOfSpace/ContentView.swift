@@ -24,7 +24,7 @@ struct ContentView: View {
             Button ("Read D2") {
                 Task {
                     do {
-                        let bytes = try await tps.readPages(pad: .center, startPage: 0x26)
+                        let bytes = try await tps.readPages(padByte: 2, startPage: 0x24)
                         print(bytes.map{ String(format:"%02X",$0)}.joined(separator:" "))
                     } catch {
                         print ("error \(error)")
