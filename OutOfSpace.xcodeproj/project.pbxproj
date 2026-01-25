@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CBE2E63F2F267D030075EBFE /* DimensionPad in Frameworks */ = {isa = PBXBuildFile; productRef = CBE2E63E2F267D030075EBFE /* DimensionPad */; };
+		CBE2E65A2F26CFEA0075EBFE /* DimensionPad in Frameworks */ = {isa = PBXBuildFile; productRef = CBE2E6592F26CFEA0075EBFE /* DimensionPad */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		CBCED1D72F180A0400F04821 /* OutOfSpace.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OutOfSpace.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CBCED1FD2F18FA5200F04821 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -24,6 +29,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CBE2E63F2F267D030075EBFE /* DimensionPad in Frameworks */,
+				CBE2E65A2F26CFEA0075EBFE /* DimensionPad in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -67,6 +74,8 @@
 			);
 			name = OutOfSpace;
 			packageProductDependencies = (
+				CBE2E63E2F267D030075EBFE /* DimensionPad */,
+				CBE2E6592F26CFEA0075EBFE /* DimensionPad */,
 			);
 			productName = OutOfSpace;
 			productReference = CBCED1D72F180A0400F04821 /* OutOfSpace.app */;
@@ -96,6 +105,9 @@
 			);
 			mainGroup = CBCED1CE2F180A0400F04821;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				CBE2E6582F26CFEA0075EBFE /* XCRemoteSwiftPackageReference "DimensionPad" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CBCED1D82F180A0400F04821 /* Products */;
 			projectDirPath = "";
@@ -353,6 +365,29 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CBE2E6582F26CFEA0075EBFE /* XCRemoteSwiftPackageReference "DimensionPad" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/below/DimensionPad";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CBE2E63E2F267D030075EBFE /* DimensionPad */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DimensionPad;
+		};
+		CBE2E6592F26CFEA0075EBFE /* DimensionPad */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CBE2E6582F26CFEA0075EBFE /* XCRemoteSwiftPackageReference "DimensionPad" */;
+			productName = DimensionPad;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CBCED1CF2F180A0400F04821 /* Project object */;
 }

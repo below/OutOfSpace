@@ -6,10 +6,10 @@
 //
 
 import SwiftUI
+import DimensionPad
 
 struct ContentView: View {
     @StateObject private var tps = ToyPadService()
-    @StateObject private var tagRegistry = TagRegistryStore()
     @State private var autoGreenEnabled: Bool = true
     @State private var padColors: [UInt8: Color] = [:]
     var body: some View {
@@ -21,16 +21,6 @@ struct ContentView: View {
 
             Toggle("Auto: Tag → Green", isOn: $autoGreenEnabled)
 
-            Button ("Read D2") {
-                Task {
-                    do {
-                        let bytes = try await tps.readPages(padByte: 2, startPage: 0x24)
-                        print(bytes.map{ String(format:"%02X",$0)}.joined(separator:" "))
-                    } catch {
-                        print ("error \(error)")
-                    }
-                }
-            }
             GroupBox("Zones") {
                 VStack(alignment: .leading, spacing: 8) {
                     zoneRow(title: "Center", pad: 1)
@@ -57,7 +47,7 @@ struct ContentView: View {
         .onReceive(tps.$pads) { newPads in
             guard autoGreenEnabled else { return }
             for padNumber: UInt8 in [1, 2, 3] {
-                let state = newPads[padNumber] ?? (present: false, uid: nil)
+                let state = newPads[padNumber] ?? PadState(present: false, uid: nil, name: nil)
                 guard let p = padEnum(padNumber) else { continue }
                 if state.present {
                     tps.color(pad: p, r: 0, g: 255, b: 0)
@@ -85,14 +75,15 @@ struct ContentView: View {
 
     @ViewBuilder
     private func zoneRow(title: String, pad: UInt8) -> some View {
-        let state = tps.pads[pad] ?? (present: false, uid: nil)
+        let state = tps.pads[pad] ?? PadState(present: false, uid: nil, name: nil)
+        let displayName = state.name ?? "Unknown"
         HStack {
             Text(title)
                 .frame(width: 60, alignment: .leading)
             Text(state.present ? "present" : "empty")
                 .frame(width: 70, alignment: .leading)
             VStack(alignment: .leading, spacing: 2) {
-                Text(tagRegistry.displayName(for: state.uid))
+                Text(displayName)
                     .font(.system(.body))
                 Text(state.uid ?? "—")
                     .font(.system(.caption, design: .monospaced))
