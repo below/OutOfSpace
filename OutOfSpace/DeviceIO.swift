@@ -331,11 +331,6 @@ final class ToyPadService: ObservableObject {
                 print("✅ \(padName(ev.pad)) inserted uid=\(uid)")
                 publishPad(ev.pad, present: true, uid: uid)
             }
-//            Task {
-//                let array = try! await readPages(padByte: ev.pad, startPage: 0x24)
-//                appendLog("Read Page 0x24: \(hex(array))")
-//            }
-
 
         case 1: // removed
             // Only log/publish if something was present
