@@ -371,8 +371,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/below/DimensionPad";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
