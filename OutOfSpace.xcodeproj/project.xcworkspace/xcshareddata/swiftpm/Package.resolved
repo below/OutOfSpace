@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/below/DimensionPad",
       "state" : {
-        "revision" : "5b1bdab8b647dc43ac99181ad94e34edf79b31d2",
-        "version" : "0.5.0"
+        "revision" : "577e21e9fe31035371ab2390dd881f19d9d162c8",
+        "version" : "1.0.0"
       }
     }
   ],

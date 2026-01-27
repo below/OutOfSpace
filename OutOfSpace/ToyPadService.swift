@@ -4,22 +4,6 @@ import DimensionPad
 
 @MainActor
 final class ToyPadService: ObservableObject {
-    enum Pad {
-        case all
-        case center
-        case left
-        case right
-
-        var rawValue: UInt8 {
-            switch self {
-            case .all: return 0
-            case .center: return 1
-            case .left: return 2
-            case .right: return 3
-            }
-        }
-    }
-
     @Published private(set) var connected: Bool = false
     @Published private(set) var pads: [UInt8: PadState] = [
         1: PadState(present: false, uid: nil, name: nil),
@@ -71,7 +55,7 @@ final class ToyPadService: ObservableObject {
     func color(pad targetPad: Pad, r: UInt8, g: UInt8, b: UInt8) {
         Task { @MainActor in
             do {
-                try await pad.setColor(padByte: targetPad.rawValue, r: r, g: g, b: b)
+                try await pad.setColor(pad: targetPad, r: r, g: g, b: b)
             } catch {
                 appendLog("color error: \(error)")
             }

@@ -23,9 +23,9 @@ struct ContentView: View {
 
             GroupBox("Zones") {
                 VStack(alignment: .leading, spacing: 8) {
-                    zoneRow(title: "Center", pad: 1)
-                    zoneRow(title: "Left", pad: 2)
-                    zoneRow(title: "Right", pad: 3)
+                    zoneRow(title: "Center", pad: .center)
+                    zoneRow(title: "Left", pad: .left)
+                    zoneRow(title: "Right", pad: .right)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -48,7 +48,7 @@ struct ContentView: View {
             guard autoGreenEnabled else { return }
             for padNumber: UInt8 in [1, 2, 3] {
                 let state = newPads[padNumber] ?? PadState(present: false, uid: nil, name: nil)
-                guard let p = padEnum(padNumber) else { continue }
+                guard let p = Pad(rawValue: padNumber) else { continue }
                 if state.present {
                     tps.color(pad: p, r: 0, g: 255, b: 0)
                 } else {
@@ -63,19 +63,9 @@ struct ContentView: View {
         }
     }
 
-    private func padEnum(_ pad: UInt8) -> ToyPadService.Pad? {
-        switch pad {
-        case 0: return .all
-        case 1: return .center
-        case 2: return .left
-        case 3: return .right
-        default: return nil
-        }
-    }
-
     @ViewBuilder
-    private func zoneRow(title: String, pad: UInt8) -> some View {
-        let state = tps.pads[pad] ?? PadState(present: false, uid: nil, name: nil)
+    private func zoneRow(title: String, pad: Pad) -> some View {
+        let state = tps.pads[pad.rawValue] ?? PadState(present: false, uid: nil, name: nil)
         let displayName = state.name ?? "Unknown"
         HStack {
             Text(title)
@@ -92,26 +82,22 @@ struct ContentView: View {
             .textSelection(.enabled)
             Spacer()
             ColorPicker("Color", selection: Binding(
-                get: { padColors[pad] ?? .green },
+                get: { padColors[pad.rawValue] ?? .green },
                 set: { newColor in
-                    padColors[pad] = newColor
-                    if let p = padEnum(pad) {
-                        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-                        NSColor(newColor).usingColorSpace(.deviceRGB)?.getRed(&r, green: &g, blue: &b, alpha: &a)
-                        tps.color(pad: p,
-                                  r: UInt8(max(0, min(255, Int(round(r * 255))))),
-                                  g: UInt8(max(0, min(255, Int(round(g * 255))))),
-                                  b: UInt8(max(0, min(255, Int(round(b * 255))))))
-                    }
+                    padColors[pad.rawValue] = newColor
+                    var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+                    NSColor(newColor).usingColorSpace(.deviceRGB)?.getRed(&r, green: &g, blue: &b, alpha: &a)
+                    tps.color(pad: pad,
+                              r: UInt8(max(0, min(255, Int(round(r * 255))))),
+                              g: UInt8(max(0, min(255, Int(round(g * 255))))),
+                              b: UInt8(max(0, min(255, Int(round(b * 255))))))
                 }
             ))
             .labelsHidden()
             .frame(width: 44)
             .disabled(!tps.connected)
             Button("Off") {
-                if let p = padEnum(pad) {
-                    tps.color(pad: p, r: 0, g: 0, b: 0)
-                }
+                tps.color(pad: pad, r: 0, g: 0, b: 0)
             }
         }
     }
