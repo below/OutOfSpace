@@ -29,6 +29,34 @@ struct ContentView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            
+            GroupBox("Flash") {
+                HStack {
+                    Button("Pulse Center") {
+                        tps.flash(pad: .center, r: 255, g: 120, b: 0)
+                    }
+                    .disabled(!tps.connected)
+                    Button("Pulse All") {
+                        tps.flashAllDemo()
+                    }
+                    .disabled(!tps.connected)
+                    Spacer()
+                }
+            }
+            
+            GroupBox("Fade") {
+                HStack {
+                    Button("Fade Center") {
+                        tps.fade(pad: .center)
+                    }
+                    .disabled(!tps.connected)
+                    Button("Fade All") {
+                        tps.fadeAllDemo()
+                    }
+                    .disabled(!tps.connected)
+                    Spacer()
+                }
+            }
 
             GroupBox("Log") {
                 ScrollView {
@@ -47,7 +75,7 @@ struct ContentView: View {
         .onReceive(tps.$pads) { newPads in
             guard autoGreenEnabled else { return }
             for padNumber: UInt8 in [1, 2, 3] {
-                let state = newPads[padNumber] ?? PadState(present: false, uid: nil, name: nil)
+                let state = newPads[padNumber] ?? PadState(present: false, uid: nil, characterID: nil, name: nil)
                 guard let p = Pad(rawValue: padNumber) else { continue }
                 if state.present {
                     tps.color(pad: p, r: 0, g: 255, b: 0)
@@ -65,7 +93,7 @@ struct ContentView: View {
 
     @ViewBuilder
     private func zoneRow(title: String, pad: Pad) -> some View {
-        let state = tps.pads[pad.rawValue] ?? PadState(present: false, uid: nil, name: nil)
+        let state = tps.pads[pad.rawValue] ?? PadState(present: false, uid: nil, characterID: nil, name: nil)
         let displayName = state.name ?? "Unknown"
         HStack {
             Text(title)
@@ -75,7 +103,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(displayName)
                     .font(.system(.body))
-                Text(state.uid ?? "—")
+                Text(state.characterID.map { String($0) } ?? state.uid ?? "-")
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(.secondary)
             }
