@@ -5,10 +5,10 @@ import DimensionPad
 @MainActor
 final class ToyPadService: ObservableObject {
     @Published private(set) var connected: Bool = false
-    @Published private(set) var pads: [UInt8: PadState] = [
-        1: PadState(present: false, uid: nil, characterID: nil, name: nil),
-        2: PadState(present: false, uid: nil, characterID: nil, name: nil),
-        3: PadState(present: false, uid: nil, characterID: nil, name: nil)
+    @Published private(set) var pads: [Pad: PadState] = [
+        .center: PadState(present: false, uid: nil, characterID: nil, name: nil),
+        .left: PadState(present: false, uid: nil, characterID: nil, name: nil),
+        .right: PadState(present: false, uid: nil, characterID: nil, name: nil)
     ]
     @Published private(set) var log: [String] = []
 

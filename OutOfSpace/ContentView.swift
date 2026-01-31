@@ -46,14 +46,13 @@ struct ContentView: View {
         .padding()
         .onReceive(tps.$pads) { newPads in
             guard autoLightEnabled else { return }
-            for padNumber: UInt8 in [1, 2, 3] {
-                let state = newPads[padNumber] ?? PadState(present: false, uid: nil, characterID: nil, name: nil)
-                guard let p = Pad(rawValue: padNumber) else { continue }
+            for pad: Pad in [.center, .left, .right] {
+                let state = newPads[pad] ?? PadState(present: false, uid: nil, characterID: nil, name: nil)
                 if state.present {
-                    tps.color(pad: p, r: 255, g: 255, b: 255)
-                    tps.fade(pad: p, tickTime: 40, tickCount: 0xFF, r: 0x46, g: 0x46, b: 0x46)
+                    tps.color(pad: pad, r: 255, g: 255, b: 255)
+                    tps.fade(pad: pad, tickTime: 40, tickCount: 0xFF, r: 0x46, g: 0x46, b: 0x46)
                 } else {
-                    tps.color(pad: p, r: 0, g: 0, b: 0)
+                    tps.color(pad: pad, r: 0, g: 0, b: 0)
                 }
             }
         }
@@ -66,7 +65,7 @@ struct ContentView: View {
 
     @ViewBuilder
     private func zoneRow(title: String, pad: Pad) -> some View {
-        let state = tps.pads[pad.rawValue] ?? PadState(present: false, uid: nil, characterID: nil, name: nil)
+        let state = tps.pads[pad] ?? PadState(present: false, uid: nil, characterID: nil, name: nil)
         let displayName = state.name ?? "Unknown"
         HStack {
             Text(title)
