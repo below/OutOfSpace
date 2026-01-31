@@ -10,7 +10,7 @@ import DimensionPad
 
 struct ContentView: View {
     @StateObject private var tps = ToyPadService()
-    @State private var autoGreenEnabled: Bool = true
+    @State private var autoLightEnabled: Bool = true
     @State private var padColors: [UInt8: Color] = [:]
     var body: some View {
         VStack(spacing: 16) {
@@ -19,7 +19,7 @@ struct ContentView: View {
                 Spacer()
             }
 
-            Toggle("Auto: Tag → Green", isOn: $autoGreenEnabled)
+            Toggle("Auto: Tag → Light", isOn: $autoLightEnabled)
 
             GroupBox("Zones") {
                 VStack(alignment: .leading, spacing: 8) {
@@ -30,34 +30,6 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             
-            GroupBox("Flash") {
-                HStack {
-                    Button("Pulse Center") {
-                        tps.flash(pad: .center, r: 255, g: 120, b: 0)
-                    }
-                    .disabled(!tps.connected)
-                    Button("Pulse All") {
-                        tps.flashAllDemo()
-                    }
-                    .disabled(!tps.connected)
-                    Spacer()
-                }
-            }
-            
-            GroupBox("Fade") {
-                HStack {
-                    Button("Fade Center") {
-                        tps.fade(pad: .center)
-                    }
-                    .disabled(!tps.connected)
-                    Button("Fade All") {
-                        tps.fadeAllDemo()
-                    }
-                    .disabled(!tps.connected)
-                    Spacer()
-                }
-            }
-
             GroupBox("Log") {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 4) {
@@ -73,12 +45,13 @@ struct ContentView: View {
         }
         .padding()
         .onReceive(tps.$pads) { newPads in
-            guard autoGreenEnabled else { return }
+            guard autoLightEnabled else { return }
             for padNumber: UInt8 in [1, 2, 3] {
                 let state = newPads[padNumber] ?? PadState(present: false, uid: nil, characterID: nil, name: nil)
                 guard let p = Pad(rawValue: padNumber) else { continue }
                 if state.present {
-                    tps.color(pad: p, r: 0, g: 255, b: 0)
+                    tps.color(pad: p, r: 255, g: 255, b: 255)
+                    tps.fade(pad: p, tickTime: 40, tickCount: 0xFF, r: 0x46, g: 0x46, b: 0x46)
                 } else {
                     tps.color(pad: p, r: 0, g: 0, b: 0)
                 }
