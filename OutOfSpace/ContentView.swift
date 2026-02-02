@@ -45,10 +45,19 @@ struct ContentView: View {
         }
         .padding()
         .onReceive(tps.$pads) { newPads in
-            guard autoLightEnabled else { return }
-            for pad: Pad in [.center, .left, .right] {
-                let state = newPads[pad] ?? PadState(present: false, uid: nil, characterID: nil, name: nil)
-                if state.present {
+            guard autoLightEnabled else {
+                Task { @MainActor in
+                    await tps.stopAllLights()
+                }
+                return
+            }
+            let centerPresent = newPads.center.present
+            let leftPresent = !newPads.left.isEmpty
+            let rightPresent = !newPads.right.isEmpty
+
+            let targets: [(Pad, Bool)] = [(.center, centerPresent), (.left, leftPresent), (.right, rightPresent)]
+            for (pad, present) in targets {
+                if present {
                     tps.color(pad: pad, r: 255, g: 255, b: 255)
                     tps.fade(pad: pad, tickTime: 40, tickCount: 0xFF, r: 0x46, g: 0x46, b: 0x46)
                 } else {
@@ -65,17 +74,17 @@ struct ContentView: View {
 
     @ViewBuilder
     private func zoneRow(title: String, pad: Pad) -> some View {
-        let state = tps.pads[pad] ?? PadState(present: false, uid: nil, characterID: nil, name: nil)
-        let displayName = state.name ?? "Unknown"
+        let stateInfo = displayInfo(for: pad)
+        let displayName = stateInfo.name
         HStack {
             Text(title)
                 .frame(width: 60, alignment: .leading)
-            Text(state.present ? "present" : "empty")
+            Text(stateInfo.present ? "present" : "empty")
                 .frame(width: 70, alignment: .leading)
             VStack(alignment: .leading, spacing: 2) {
                 Text(displayName)
                     .font(.system(.body))
-                Text(state.characterID.map { String($0) } ?? state.uid ?? "-")
+                Text(stateInfo.detail)
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(.secondary)
             }
@@ -100,6 +109,38 @@ struct ContentView: View {
                 tps.color(pad: pad, r: 0, g: 0, b: 0)
             }
         }
+    }
+
+    private func displayInfo(for pad: Pad) -> (present: Bool, name: String, detail: String) {
+        switch pad {
+        case .center:
+            let state = tps.pads.center
+            let name = state.name ?? "Unknown"
+            let world = state.world ?? "Unknown"
+            let detail = state.characterID.map { String($0) } ?? state.uid ?? "-"
+            return (state.present, "\(name) (\(world))", detail)
+        case .left:
+            return summarizeSet(tps.pads.left)
+        case .right:
+            return summarizeSet(tps.pads.right)
+        case .all:
+            return (false, "Unknown", "-")
+        }
+    }
+
+    private func summarizeSet(_ set: Set<PadState>) -> (present: Bool, name: String, detail: String) {
+        if set.isEmpty {
+            return (false, "Unknown", "-")
+        }
+        let states = set
+            .sorted { lhs, rhs in
+                let l = lhs.name ?? lhs.uid ?? ""
+                let r = rhs.name ?? rhs.uid ?? ""
+                return l < r
+            }
+        let names = states.map { "\($0.name ?? "Unknown") (\($0.world ?? "Unknown"))" }.joined(separator: " • ")
+        let details = states.map { $0.characterID.map { String($0) } ?? $0.uid ?? "-" }.joined(separator: " • ")
+        return (true, names, details)
     }
 }
 

@@ -5,11 +5,11 @@ import DimensionPad
 @MainActor
 final class ToyPadService: ObservableObject {
     @Published private(set) var connected: Bool = false
-    @Published private(set) var pads: [Pad: PadState] = [
-        .center: PadState(present: false, uid: nil, characterID: nil, name: nil),
-        .left: PadState(present: false, uid: nil, characterID: nil, name: nil),
-        .right: PadState(present: false, uid: nil, characterID: nil, name: nil)
-    ]
+    @Published private(set) var pads = PadSlots(
+        center: PadState(present: false, uid: nil, characterID: nil, name: nil, world: nil),
+        left: [],
+        right: []
+    )
     @Published private(set) var log: [String] = []
 
     private let pad = DimensionPad()
