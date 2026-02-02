@@ -67,10 +67,11 @@ struct ContentView: View {
         }
         .onAppear { tps.start() }
         .onDisappear {
-            tps.color(pad: .all, r: 0, g: 0, b: 0)
+            autoLightEnabled = false
+            tps.stopAllLightsBlocking()
             tps.stop()
         }
-    }
+     }
 
     @ViewBuilder
     private func zoneRow(title: String, pad: Pad) -> some View {

@@ -61,6 +61,35 @@ final class ToyPadService: ObservableObject {
             }
         }
     }
+
+    @MainActor
+    func stopAllLights() async {
+        debugPrint("STOP LIGHTS START!")
+
+        do {
+            try await pad.setColor(pad: .all, r: 0, g: 0, b: 0)
+            let offFlash = FlashPad(enabled: false, tickOn: 0, tickOff: 0, tickCount: 0, r: 0, g: 0, b: 0)
+            try await pad.flashAll(center: offFlash, left: offFlash, right: offFlash)
+            try await pad.fade(pad: .center, tickTime: 1, tickCount: 1, r: 0, g: 0, b: 0)
+            try await pad.fade(pad: .left, tickTime: 1, tickCount: 1, r: 0, g: 0, b: 0)
+            try await pad.fade(pad: .right, tickTime: 1, tickCount: 1, r: 0, g: 0, b: 0)
+            debugPrint("SHUT DOWN COMPLETE!")
+        } catch {
+            appendLog("stop lights error: \(error)")
+        }
+    }
+
+    func stopAllLightsBlocking(timeout: TimeInterval = 3.0) {
+        debugPrint("SHUT DOWN START!")
+
+        let group = DispatchGroup()
+        group.enter()
+        Task { @MainActor in
+            await stopAllLights()
+            group.leave()
+        }
+        _ = group.wait(timeout: .now() + timeout)
+    }
     
     func flash(pad targetPad: Pad, tickOn: UInt8 = 8, tickOff: UInt8 = 8, tickCount: UInt8 = 8, r: UInt8 = 255, g: UInt8 = 255, b: UInt8 = 0) {
         Task { @MainActor in
