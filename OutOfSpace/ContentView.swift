@@ -12,6 +12,9 @@ struct ContentView: View {
     @StateObject private var tps = ToyPadService()
     @State private var autoLightEnabled: Bool = true
     @State private var padColors: [UInt8: Color] = [:]
+    @State private var lastCenterPresent = false
+    @State private var lastLeftPresent = false
+    @State private var lastRightPresent = false
     var body: some View {
         VStack(spacing: 16) {
             HStack {
@@ -45,15 +48,31 @@ struct ContentView: View {
         }
         .padding()
         .onReceive(tps.$pads) { newPads in
-            guard autoLightEnabled else {
-                return
-            }
             let centerPresent = newPads.center.present
             let leftPresent = !newPads.left.isEmpty
             let rightPresent = !newPads.right.isEmpty
 
-            let targets: [(Pad, Bool)] = [(.center, centerPresent), (.left, leftPresent), (.right, rightPresent)]
-            for (pad, present) in targets {
+            let changedTargets: [(Pad, Bool)] = [
+                (.center, centerPresent, lastCenterPresent),
+                (.left, leftPresent, lastLeftPresent),
+                (.right, rightPresent, lastRightPresent)
+            ]
+            .filter { _, newPresent, oldPresent in
+                newPresent != oldPresent
+            }
+            .map { pad, newPresent, _ in
+                (pad, newPresent)
+            }
+
+            lastCenterPresent = centerPresent
+            lastLeftPresent = leftPresent
+            lastRightPresent = rightPresent
+
+            guard autoLightEnabled else {
+                return
+            }
+
+            for (pad, present) in changedTargets {
                 if present {
                     tps.color(pad: pad, r: 255, g: 255, b: 255)
                     tps.fade(pad: pad, tickTime: 40, tickCount: 0xFF, r: 0x46, g: 0x46, b: 0x46)
@@ -86,6 +105,10 @@ struct ContentView: View {
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(.secondary)
             }
+            .opacity(stateInfo.present ? 1 : 0)
+            .animation(.easeInOut(duration: 0.2), value: stateInfo.present)
+            .animation(.easeInOut(duration: 0.2), value: displayName)
+            .animation(.easeInOut(duration: 0.2), value: stateInfo.detail)
             .textSelection(.enabled)
             Spacer()
             ColorPicker("Color", selection: Binding(
