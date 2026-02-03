@@ -46,9 +46,6 @@ struct ContentView: View {
         .padding()
         .onReceive(tps.$pads) { newPads in
             guard autoLightEnabled else {
-                Task { @MainActor in
-                    await tps.stopAllLights()
-                }
                 return
             }
             let centerPresent = newPads.center.present
@@ -68,7 +65,7 @@ struct ContentView: View {
         .onAppear { tps.start() }
         .onDisappear {
             autoLightEnabled = false
-            tps.stopAllLightsBlocking()
+            tps.stopAllLights()
             tps.stop()
         }
      }
